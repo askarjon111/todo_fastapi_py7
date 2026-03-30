@@ -60,3 +60,17 @@ def update_todo(task_id: int, todo_in: TodoUpdate, db = Depends(get_db)):
     db.refresh(todo)
 
     return todo
+
+
+@api_router.delete('/{task_id}')
+def get_todo(task_id: int, db = Depends(get_db)):
+    stmt = select(Todo).where(Todo.id == task_id)
+    todo = db.scalar(stmt)
+
+    if not todo:
+        raise HTTPException(status_code=404, detail=f"{task_id}-raqamli todo mavjud emas")
+
+    db.delete(todo)
+    db.commit()
+
+    return {"status": 204}
