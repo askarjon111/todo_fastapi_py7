@@ -2,9 +2,10 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import select
-from schemas import TodoCreate, TodoOut, TodoUpdate
+from sqlalchemy.orm import Session
+from schemas import TodoCreate, TodoOut, TodoUpdate, UserCreate, UserOut
 from database import Base, get_db, engine
-from models import Todo
+from models import Todo, User
 
 
 
@@ -12,8 +13,25 @@ Base.metadata.create_all(bind=engine)
 api_router = APIRouter(prefix='/api/todo')
 
 
+@api_router.post('/users', response_model=UserOut)
+def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
+    user = User(**user_in.model_dump())
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user
+
+
 @api_router.post('/', response_model=TodoOut)
-def create_todo(todo_in: TodoCreate, db = Depends(get_db)):
+def create_todo(todo_in: TodoCreate, db: Session = Depends(get_db)):
+    stmt = select(User).where(User.id == todo_in.user_id)
+    user = db.scalar(stmt)
+
+    if not user:
+        raise HTTPException(status_code=400, detail=f"{todo_in['user_id']} idli user mavjud emas")
+
     todo = Todo(**todo_in.model_dump())
 
     db.add(todo)
