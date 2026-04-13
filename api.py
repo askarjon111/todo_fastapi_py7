@@ -5,11 +5,11 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status, APIRouter
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from models import Todo, User
 from database import Base, get_db, engine
-from schemas import TodoCreate, TodoOut, TodoUpdate, UserCreate, UserOut
+from schemas import TodoCreate, TodoOut, TodoUpdate, Token, Token, UserCreate, UserOut
 
 
 Base.metadata.create_all(bind=engine)
@@ -54,6 +54,19 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
     db.refresh(user)
 
     return user
+
+
+@api_router.post('/users/login', response_model=Token)
+def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.scalar(select(User).where(User.username == form.username))
+    if not user:
+        raise HTTPException(status_code=400, detail="Bunday foydalanuvchi mavjud emas")
+
+    if not security.verify_password(form.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Username yoki parol noto'g'ri")
+
+    access_token = security.create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @api_router.post('/', response_model=TodoOut)
