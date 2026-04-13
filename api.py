@@ -1,21 +1,53 @@
-from typing import List
+import security
+import jwt
 
-from fastapi import APIRouter, HTTPException, Depends
+from typing import List
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from schemas import TodoCreate, TodoOut, TodoUpdate, UserCreate, UserOut
-from database import Base, get_db, engine
-from models import Todo, User
+from fastapi import Depends, HTTPException, status, APIRouter
+from fastapi.security import OAuth2PasswordBearer
 
+from models import Todo, User
+from database import Base, get_db, engine
+from schemas import TodoCreate, TodoOut, TodoUpdate, UserCreate, UserOut
 
 
 Base.metadata.create_all(bind=engine)
 api_router = APIRouter(prefix='/api/todo')
 
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Token yaroqsiz yoki muddati tugagan"
+    )
+    try:
+        payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except jwt.InvalidTokenError:
+        raise credentials_exception
+
+    user = db.scalar(select(User).where(User.id == int(user_id)))
+    if user is None:
+        raise credentials_exception
+
+    return user
+
+
 @api_router.post('/users', response_model=UserOut)
 def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
-    user = User(**user_in.model_dump())
+    user = db.scalar(select(User).where(User.first_name == user_in.first_name, User.last_name == user_in.last_name))
+    if user:
+        raise HTTPException(status_code=400, detail="Bunday foydalanuvchi mavjud")
+
+    user_dict = user_in.model_dump()
+    hashed_password = security.get_password_hash(user_dict.pop("password"))
+    
+    user = User(**user_dict, hashed_password=hashed_password)
 
     db.add(user)
     db.commit()
