@@ -24,7 +24,6 @@ class UserOut(UserBase):
 class TodoBase(BaseModel):
     name: str = Field(max_length=100)
     description: str = Field(max_length=200)
-    user_id: int
 
 
 class TodoCreate(TodoBase):
@@ -34,6 +33,7 @@ class TodoCreate(TodoBase):
 class TodoOut(TodoBase):
     id: int = Field(ge=1)
     is_completed: bool = Field(default=False)
+    user_id: int = Field(ge=1)
 
 
 class TodoUpdate(TodoBase):

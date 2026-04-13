@@ -13,7 +13,7 @@ from schemas import TodoCreate, TodoOut, TodoUpdate, Token, Token, UserCreate, U
 
 
 Base.metadata.create_all(bind=engine)
-api_router = APIRouter(prefix='/api/todo')
+api_router = APIRouter(prefix='/api/')
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -69,15 +69,17 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@api_router.post('/', response_model=TodoOut)
-def create_todo(todo_in: TodoCreate, db: Session = Depends(get_db)):
-    stmt = select(User).where(User.id == todo_in.user_id)
-    user = db.scalar(stmt)
+@api_router.post('/users/me', response_model=UserOut)
+def get_current_user_profile(current_user: UserOut = Depends(get_current_user)):
+    return current_user
 
+
+@api_router.post('/todo/', response_model=TodoOut)
+def create_todo(todo_in: TodoCreate, db: Session = Depends(get_db), user: UserOut = Depends(get_current_user)):
     if not user:
         raise HTTPException(status_code=400, detail=f"{todo_in['user_id']} idli user mavjud emas")
 
-    todo = Todo(**todo_in.model_dump())
+    todo = Todo(**todo_in.model_dump(), user_id=user.id)
 
     db.add(todo)
     db.commit()
@@ -86,7 +88,7 @@ def create_todo(todo_in: TodoCreate, db: Session = Depends(get_db)):
     return todo
 
 
-@api_router.get('/', response_model=List[TodoOut])
+@api_router.get('/todo/', response_model=List[TodoOut])
 def get_todos(db = Depends(get_db)):
     stmt = select(Todo)
     todos = db.scalars(stmt).all()
@@ -95,7 +97,7 @@ def get_todos(db = Depends(get_db)):
 
 
 
-@api_router.get('/{task_id}', response_model=TodoOut)
+@api_router.get('/todo/{task_id}', response_model=TodoOut)
 def get_todo(task_id: int, db = Depends(get_db)):
     stmt = select(Todo).where(Todo.id == task_id)
     todo = db.scalar(stmt)
@@ -106,7 +108,7 @@ def get_todo(task_id: int, db = Depends(get_db)):
     return todo
 
 
-@api_router.put('/{task_id}', response_model=TodoOut)
+@api_router.put('/todo/{task_id}', response_model=TodoOut)
 def update_todo(task_id: int, todo_in: TodoUpdate, db = Depends(get_db)):
     stmt = select(Todo).where(Todo.id == task_id)
     todo: TodoOut = db.scalar(stmt)
@@ -125,7 +127,7 @@ def update_todo(task_id: int, todo_in: TodoUpdate, db = Depends(get_db)):
     return todo
 
 
-@api_router.delete('/{task_id}')
+@api_router.delete('/todo/{task_id}')
 def get_todo(task_id: int, db = Depends(get_db)):
     stmt = select(Todo).where(Todo.id == task_id)
     todo = db.scalar(stmt)
