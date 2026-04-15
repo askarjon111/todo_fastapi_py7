@@ -5,7 +5,7 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status, APIRouter
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2AuthorizationCodeBearer, OAuth2PasswordRequestForm
 
 from models import Todo, User
 from database import Base, get_db, engine
@@ -15,7 +15,7 @@ from schemas import TodoCreate, TodoOut, TodoUpdate, Token, Token, UserCreate, U
 api_router = APIRouter(prefix='/api')
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2AuthorizationCodeBearer(authorizationUrl="/users/login", tokenUrl="/users/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -68,7 +68,7 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@api_router.post('/users/me', response_model=UserOut)
+@api_router.get('/users/me', response_model=UserOut)
 def get_current_user_profile(current_user: UserOut = Depends(get_current_user)):
     return current_user
 
