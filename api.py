@@ -13,7 +13,7 @@ from schemas import TodoCreate, TodoOut, TodoUpdate, Token, Token, UserCreate, U
 
 
 Base.metadata.create_all(bind=engine)
-api_router = APIRouter(prefix='/api/')
+api_router = APIRouter(prefix='/api')
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
