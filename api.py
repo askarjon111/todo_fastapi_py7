@@ -12,7 +12,6 @@ from database import Base, get_db, engine
 from schemas import TodoCreate, TodoOut, TodoUpdate, Token, Token, UserCreate, UserOut
 
 
-Base.metadata.create_all(bind=engine)
 api_router = APIRouter(prefix='/api')
 
 

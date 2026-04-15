@@ -16,6 +16,9 @@ class User(Base):
     todos: Mapped['Todo'] = relationship(back_populates='user',
                                          cascade='all, delete-orphan')
     hashed_password: Mapped[str] = mapped_column(String(length=200))
+    phone_number: Mapped[str] = mapped_column(String(length=20), nullable=True)
+    gender: Mapped[str] = mapped_column(String(length=10), nullable=True)
+    city: Mapped[str] = mapped_column(String(length=100), nullable=True)
 
 
 class Todo(Base):
