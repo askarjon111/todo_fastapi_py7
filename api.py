@@ -1,3 +1,5 @@
+import time
+
 import security
 import jwt
 
@@ -57,6 +59,7 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
 
 @api_router.post('/users/login', response_model=Token)
 def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    time.sleep(2)  # Simulate processing time
     user = db.scalar(select(User).where(User.username == form.username))
     if not user:
         raise HTTPException(status_code=400, detail="Bunday foydalanuvchi mavjud emas")
