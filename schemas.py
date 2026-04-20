@@ -34,6 +34,7 @@ class TodoOut(TodoBase):
     id: int = Field(ge=1)
     is_completed: bool = Field(default=False)
     user_id: int = Field(ge=1)
+    
 
 
 class TodoUpdate(TodoBase):

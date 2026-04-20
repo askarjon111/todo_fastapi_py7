@@ -4,7 +4,7 @@ import security
 import jwt
 
 from typing import List
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2AuthorizationCodeBearer, OAuth2PasswordRequestForm
@@ -90,12 +90,20 @@ def create_todo(todo_in: TodoCreate, db: Session = Depends(get_db), user: UserOu
     return todo
 
 
-@api_router.get('/todo/', response_model=List[TodoOut])
-def get_todos(db = Depends(get_db)):
-    stmt = select(Todo)
+@api_router.get('/todo/')
+def get_todos(limit: int = 10, offset: int = 0, db: Session = Depends(get_db)):
+    stmt = select(Todo).limit(limit).offset(offset)
     todos = db.scalars(stmt).all()
+    todo_count = db.scalar(select(func.count()).select_from(Todo))
 
-    return todos
+    data = {
+        "total": todo_count,
+        "items": todos,
+        "limit": limit,
+        "offset": offset
+    }
+
+    return data
 
 
 

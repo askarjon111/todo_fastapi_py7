@@ -8,7 +8,9 @@ app = FastAPI()
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    print(f"Request: {request.method} {request.url}, {request.headers}")
+    print(f"Request: {request.headers['user-agent']}")
+    if 'Postman' in request.headers['user-agent']:
+        print("Request from Postman")
     start_time = time.time()
     response = await call_next(request)
     end_time = time.time()
