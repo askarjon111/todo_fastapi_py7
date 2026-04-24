@@ -1,11 +1,12 @@
-import time
+import asyncio
 
+from email_service import send_welcome_email
 import security
 import jwt
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession as Session
-from fastapi import Depends, HTTPException, status, APIRouter
+from fastapi import Depends, HTTPException, status, APIRouter, BackgroundTasks
 from fastapi.security import OAuth2AuthorizationCodeBearer, OAuth2PasswordRequestForm
 
 from models import Todo, User
@@ -39,26 +40,28 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 
 
 @api_router.post('/users', response_model=UserOut)
-async def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
+async def create_user(bg_tasks: BackgroundTasks, user_in: UserCreate, db: Session = Depends(get_db)):
     user = await db.scalar(select(User).where(User.username == user_in.username))
     if user:
         raise HTTPException(status_code=400, detail="Bunday foydalanuvchi mavjud")
 
     user_dict = user_in.model_dump()
     hashed_password = security.get_password_hash(user_dict.pop("password"))
-    
+
     user = User(**user_dict, hashed_password=hashed_password)
 
     db.add(user)
     await db.commit()
     await db.refresh(user)
 
+    # Add background task to send welcome email
+    bg_tasks.add_task(send_welcome_email, f"{user.username}@gmail.com")
+
     return user
 
 
 @api_router.post('/users/login', response_model=Token)
 async def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    time.sleep(2)  # Simulate processing time
     user = db.scalar(select(User).where(User.username == form.username))
     if not user:
         raise HTTPException(status_code=400, detail="Bunday foydalanuvchi mavjud emas")
