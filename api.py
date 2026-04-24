@@ -1,6 +1,6 @@
 import asyncio
 
-from email_service import send_welcome_email
+from email_service import send_telegram_message, send_welcome_email
 import security
 import jwt
 
@@ -58,6 +58,12 @@ async def create_user(bg_tasks: BackgroundTasks, user_in: UserCreate, db: Sessio
     bg_tasks.add_task(send_welcome_email, f"{user.username}@gmail.com")
 
     return user
+
+
+@api_router.post('/users/send_telegram_message')
+async def send_telegram_message_endpoint(chat_id: str, message: str, bg_tasks: BackgroundTasks):
+    bg_tasks.add_task(send_telegram_message, chat_id, message)
+    return {"status": "Message sent"}
 
 
 @api_router.post('/users/login', response_model=Token)
