@@ -25,7 +25,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         detail="Token yaroqsiz yoki muddati tugagan"
     )
     try:
-        payload = await jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+        payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
@@ -39,7 +39,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 
-@api_router.post('/users', response_model=UserOut)
+@api_router.post('/users/', response_model=UserOut)
 async def create_user(bg_tasks: BackgroundTasks, user_in: UserCreate, db: Session = Depends(get_db)):
     user = await db.scalar(select(User).where(User.username == user_in.username))
     if user:
@@ -68,11 +68,11 @@ async def send_telegram_message_endpoint(chat_id: str, message: str, bg_tasks: B
 
 @api_router.post('/users/login', response_model=Token)
 async def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.scalar(select(User).where(User.username == form.username))
+    user = await db.scalar(select(User).where(User.username == form.username))
     if not user:
         raise HTTPException(status_code=400, detail="Bunday foydalanuvchi mavjud emas")
 
-    if not await security.verify_password(form.password, user.hashed_password):
+    if not security.verify_password(form.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Username yoki parol noto'g'ri")
 
     access_token = security.create_access_token(data={"sub": str(user.id)})
@@ -92,8 +92,8 @@ async def create_todo(todo_in: TodoCreate, db: Session = Depends(get_db), user: 
     todo = Todo(**todo_in.model_dump(), user_id=user.id)
 
     db.add(todo)
-    db.commit()
-    db.refresh(todo)
+    await db.commit()
+    await db.refresh(todo)
 
     return todo
 

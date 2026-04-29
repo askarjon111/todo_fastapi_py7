@@ -19,6 +19,7 @@ class Token(BaseModel):
 
 class UserOut(UserBase):
     id: int
+    username: str
 
 
 class TodoBase(BaseModel):
