@@ -1,6 +1,7 @@
 from email_service import send_telegram_message, send_welcome_email
 import security
 import jwt
+import shutil
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession as Session
@@ -63,9 +64,19 @@ from fastapi import UploadFile, File
 async def upload_avatar(file: UploadFile = File(...),
                         current_user: UserOut = Depends(get_current_user),
                         db: Session = Depends(get_db)):
-    file = await file.read()
-    print(file)
+    from main import UPLOAD_FOLDER
+    file_extension = file.filename.split(".")[-1]
+    file_location = f"{UPLOAD_FOLDER}/{current_user.id}_avatar.{file_extension}"
+    static_location = f"/static/{current_user.id}_avatar.{file_extension}"
+
+    with open(file_location, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
     
+    current_user.user_avatar = static_location
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
+    return current_user
 
 
 @api_router.post('/users/send_telegram_message')

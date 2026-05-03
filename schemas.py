@@ -20,6 +20,7 @@ class Token(BaseModel):
 class UserOut(UserBase):
     id: int
     username: str
+    user_avatar: str | None = None
 
 
 class TodoBase(BaseModel):
