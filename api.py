@@ -1,12 +1,10 @@
-import asyncio
-
 from email_service import send_telegram_message, send_welcome_email
 import security
 import jwt
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession as Session
-from fastapi import Depends, HTTPException, status, APIRouter, BackgroundTasks
+from fastapi import Depends, HTTPException, status, APIRouter, BackgroundTasks, UploadFile, File
 from fastapi.security import OAuth2AuthorizationCodeBearer, OAuth2PasswordRequestForm
 
 from models import Todo, User
@@ -58,6 +56,16 @@ async def create_user(bg_tasks: BackgroundTasks, user_in: UserCreate, db: Sessio
     bg_tasks.add_task(send_welcome_email, f"{user.username}@gmail.com")
 
     return user
+
+from fastapi import UploadFile, File
+
+@api_router.post('/users/upload_avatar/')
+async def upload_avatar(file: UploadFile = File(...),
+                        current_user: UserOut = Depends(get_current_user),
+                        db: Session = Depends(get_db)):
+    file = await file.read()
+    print(file)
+    
 
 
 @api_router.post('/users/send_telegram_message')
