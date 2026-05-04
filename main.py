@@ -1,9 +1,8 @@
-import os
 import time
 from fastapi import FastAPI, Request
-from api import api_router
+from routes.users import users_router
+from routes.todo import todo_router
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
@@ -27,8 +26,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(api_router)
 
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.mount("/static", StaticFiles(directory="uploads"), name="static")
+app.include_router(users_router)
+app.include_router(todo_router)

@@ -2,7 +2,6 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
 
-# In a real app, keep this secret!
 SECRET_KEY = "my_super_secret_key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30

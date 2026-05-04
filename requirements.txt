@@ -19,6 +19,7 @@ fastapi==0.135.2
 fastapi-cli==0.0.24
 fastapi-cloud-cli==0.15.1
 fastar==0.9.0
+flake8==7.3.0
 frozenlist==1.8.0
 greenlet==3.3.2
 h11==0.16.0
@@ -31,16 +32,19 @@ Jinja2==3.1.6
 Mako==1.3.11
 markdown-it-py==4.0.0
 MarkupSafe==3.0.3
+mccabe==0.7.0
 mdurl==0.1.2
 multidict==6.7.1
 packaging==26.2
 passlib==1.7.4
 pluggy==1.6.0
 propcache==0.4.1
+pycodestyle==2.14.0
 pydantic==2.12.5
 pydantic-extra-types==2.11.1
 pydantic-settings==2.13.1
 pydantic_core==2.41.5
+pyflakes==3.4.0
 Pygments==2.20.0
 PyJWT==2.12.1
 pytest==9.0.3
