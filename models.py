@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Integer, Boolean, ForeignKey
 
-
 from database import Base
+from enums import Roles
 
 
 class User(Base):
@@ -18,6 +18,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(length=200))
     phone_number: Mapped[str] = mapped_column(String(length=20), nullable=True)
     user_avatar: Mapped[str] = mapped_column(String(length=200), nullable=True)
+    role: Mapped[Roles] = mapped_column(String(length=50), default=Roles.USER, nullable=True)
 
 
 class Todo(Base):

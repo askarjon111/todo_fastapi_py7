@@ -1,4 +1,4 @@
-from dependencies import get_current_user
+from dependencies import get_current_user, role_checker
 from email_service import send_telegram_message
 
 
@@ -21,7 +21,9 @@ async def send_telegram_message_endpoint(chat_id: str, message: str, bg_tasks: B
 
 
 @todo_router.post('/', response_model=TodoOut)
-async def create_todo(todo_in: TodoCreate, db: Session = Depends(get_db), user: UserOut = Depends(get_current_user)):
+async def create_todo(todo_in: TodoCreate, db: Session = Depends(get_db),
+                      user: UserOut = Depends(get_current_user),
+                      _: UserOut = Depends(role_checker('admin'))):
     if not user:
         raise HTTPException(status_code=400, detail=f"{todo_in['user_id']} idli user mavjud emas")
 
